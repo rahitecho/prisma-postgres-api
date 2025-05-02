@@ -1,0 +1,32 @@
+export interface Customer {
+  id: number;
+  name: string;
+  dob: Date | null;
+  gender: string;
+  phone: string;
+  email: string;
+  sport_id: number;
+  city_id: number;
+  customer_code: string;
+  location: string;
+  address: string;
+  employment_status: string;
+  resident_status: string;
+  status: number;
+  created_by?: number;
+  updated_by?: number;
+  created_on: Date;
+  updated_on: Date;
+  otp?: string;
+  isverified: number;
+  otp_expiry_time?: string;
+  valid_otp_time?: number;
+  google_id?: string;
+  facebook_id?: string;
+  apple_id?: string;
+  order_id?: string;
+  payment_id?: string;
+  order_status?: string;
+  picture?: string;
+  venue_id?: number;
+}
