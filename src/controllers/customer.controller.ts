@@ -9,7 +9,7 @@ class CustomerController {
   public getCustomer = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const findAllCustomer: Customer[] = await this.customerService.findAllCustomer();
-      res.status(200).json({ data: findAllCustomer, messaage: 'findAll' });
+      res.status(200).json({ data: findAllCustomer, message: 'findAll' });
     } catch (error) {
       next(error);
     }

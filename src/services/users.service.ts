@@ -1,64 +1,77 @@
-// import { hash } from 'bcrypt';
-// import { CreateUserDto } from '@dtos/users.dto';
-// import { HttpException } from '@exceptions/HttpException';
-// import { User } from '@interfaces/users.interface';
-// import userModel from '@models/users.model';
-// import { isEmpty } from '@utils/util';
+import prisma from '@/databases';
+import { CreateUserDto } from '@/dtos/users.dto';
+import { HttpException } from '@/exceptions/HttpException';
+import { User } from '@/interfaces/users.interface';
+import { isEmpty } from '@/utils/util';
+import { hash } from 'bcrypt';
 
-// class UserService {
-//   public users = userModel;
+class UserService {
+  public async findAllUser(): Promise<User[]> {
+    return prisma.user.findMany();
+  }
 
-//   public async findAllUser(): Promise<User[]> {
-//     const users: User[] = await this.users.find();
-//     return users;
-//   }
+  public async findUserById(userId: number): Promise<User> {
+    if (isEmpty(userId)) throw new HttpException(400, 'User ID is empty');
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new HttpException(404, "User doesn't exist");
 
-//   public async findUserById(userId: string): Promise<User> {
-//     if (isEmpty(userId)) throw new HttpException(400, "UserId is empty");
+    return user;
+  }
 
-//     const findUser: User = await this.users.findOne({ _id: userId });
-//     if (!findUser) throw new HttpException(409, "User doesn't exist");
+  public async createUser(userData: CreateUserDto): Promise<User> {
+    if (isEmpty(userData)) throw new HttpException(400, 'User data is empty');
+    const existingUser = await prisma.user.findUnique({ where: { email: userData.email } });
+    if (existingUser) throw new HttpException(409, `This email ${userData.email} already exists`);
 
-//     return findUser;
-//   }
+    const hashPassword = await hash(userData.password, 10);
+    const user = await prisma.user.create({
+      data: {
+        name: userData.name,
+        email: userData.email,
+        password: hashPassword,
+      },
+    });
+    return user;
+  }
 
-//   public async createUser(userData: CreateUserDto): Promise<User> {
-//     if (isEmpty(userData)) throw new HttpException(400, "userData is empty");
+  public async updateUser(userId: number, userData: Partial<CreateUserDto>): Promise<User> {
+    if (isEmpty(userData)) throw new HttpException(400, 'User data is empty');
 
-//     const findUser: User = await this.users.findOne({ email: userData.email });
-//     if (findUser) throw new HttpException(409, `This email ${userData.email} already exists`);
+    if (userData.email) {
+      const existingUser = await prisma.user.findUnique({ where: { email: userData.email } });
+      if (existingUser && existingUser.id !== userId) {
+        throw new HttpException(409, `This email ${userData.email} already exists`);
+      }
+    }
 
-//     const hashedPassword = await hash(userData.password, 10);
-//     const createUserData: User = await this.users.create({ ...userData, password: hashedPassword });
+    if (userId) {
+      const existingUser = await prisma.user.findUnique({ where: { id: userId } });
+      if (!existingUser) {
+        throw new HttpException(409, `This User doesn't exists`);
+      }
+    }
 
-//     return createUserData;
-//   }
+    const updatedData = { ...userData };
 
-//   public async updateUser(userId: string, userData: CreateUserDto): Promise<User> {
-//     if (isEmpty(userData)) throw new HttpException(400, "userData is empty");
+    if (userData.password) {
+      updatedData.password = await hash(userData.password, 10);
+    }
 
-//     if (userData.email) {
-//       const findUser: User = await this.users.findOne({ email: userData.email });
-//       if (findUser && findUser._id != userId) throw new HttpException(409, `This email ${userData.email} already exists`);
-//     }
+    const user = await prisma.user.update({
+      where: { id: userId },
+      data: updatedData,
+    });
 
-//     if (userData.password) {
-//       const hashedPassword = await hash(userData.password, 10);
-//       userData = { ...userData, password: hashedPassword };
-//     }
+    return user;
+  }
 
-//     const updateUserById: User = await this.users.findByIdAndUpdate(userId, { userData });
-//     if (!updateUserById) throw new HttpException(409, "User doesn't exist");
+  public async deleteUser(userId: number): Promise<User> {
+    try {
+      return await prisma.user.delete({ where: { id: userId } });
+    } catch {
+      throw new HttpException(404, "User doesn't exist");
+    }
+  }
+}
 
-//     return updateUserById;
-//   }
-
-//   public async deleteUser(userId: string): Promise<User> {
-//     const deleteUserById: User = await this.users.findByIdAndDelete(userId);
-//     if (!deleteUserById) throw new HttpException(409, "User doesn't exist");
-
-//     return deleteUserById;
-//   }
-// }
-
-// export default UserService;
+export default UserService;

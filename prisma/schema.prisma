@@ -1,0 +1,52 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model customer {
+  id                Int       @id(map: "PK_a7a13f4cacb744524e44dfdad32") @default(autoincrement())
+  name              String    @db.VarChar(55)
+  dob               DateTime? @db.Date
+  gender            String    @default("Male") @db.VarChar(11)
+  phone             String    @db.VarChar(55)
+  email             String    @unique @db.VarChar(55)
+  sport_id          Int
+  city_id           Int
+  customer_code     String    @db.VarChar(55)
+  location          String
+  address           String
+  employment_status String    @db.VarChar(11)
+  resident_status   String    @db.VarChar(11)
+  status            Int
+  created_by        Int?
+  updated_by        Int?
+  created_on DateTime @default(now()) @db.Timestamp(6)
+  updated_on DateTime @updatedAt @db.Timestamp(6)
+  otp               String?   @db.VarChar(45)
+  isverified        Int       @default(0) @db.SmallInt
+  otp_expiry_time   String?   @db.VarChar(45)
+  valid_otp_time    Int       @default(15)
+  google_id         String?   @db.VarChar(100)
+  facebook_id       String?   @db.VarChar(100)
+  apple_id          String?   @db.VarChar(100)
+  order_id          String?   @db.VarChar(100)
+  payment_id        String?   @db.VarChar(100)
+  order_status      String?   @db.VarChar(45)
+  picture           String?   @db.VarChar(4096)
+  venue_id          Int?
+}
+
+model user {
+  id         Int      @id @default(autoincrement())
+  name       String
+  email      String   @unique
+  password   String
+  isVerified Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+

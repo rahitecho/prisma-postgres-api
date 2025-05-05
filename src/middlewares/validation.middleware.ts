@@ -1,24 +1,24 @@
-import { plainToClass } from 'class-transformer';
-import { validate, ValidationError } from 'class-validator';
-import { RequestHandler } from 'express';
+// src/middlewares/validation.middleware.ts
+import { Request, Response, NextFunction, RequestHandler } from 'express';
+import { ZodSchema, ZodError } from 'zod';
 import { HttpException } from '@exceptions/HttpException';
 
-const validationMiddleware = (
-  type: any,
-  value: string | 'body' | 'query' | 'params' = 'body',
-  skipMissingProperties = false,
-  whitelist = true,
-  forbidNonWhitelisted = true,
-): RequestHandler => {
-  return (req, res, next) => {
-    validate(plainToClass(type, req[value]), { skipMissingProperties, whitelist, forbidNonWhitelisted }).then((errors: ValidationError[]) => {
-      if (errors.length > 0) {
-        const message = errors.map((error: ValidationError) => Object.values(error.constraints)).join(', ');
+type ValidationTarget = 'body' | 'query' | 'params';
+
+const validationMiddleware = (schema: ZodSchema, target: ValidationTarget = 'body'): RequestHandler => {
+  return (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const result = schema.parse(req[target]);
+      req[target] = result; // Overwrite with parsed data
+      next();
+    } catch (error) {
+      if (error instanceof ZodError) {
+        const message = error.errors.map(err => `${err.path.join('.')} is ${err.message}`).join(', ');
         next(new HttpException(400, message));
       } else {
-        next();
+        next(error);
       }
-    });
+    }
   };
 };
 

@@ -5,14 +5,13 @@ import express from 'express';
 import helmet from 'helmet';
 import hpp from 'hpp';
 import morgan from 'morgan';
-import { set, disconnect } from 'mongoose';
 import swaggerJSDoc from 'swagger-jsdoc';
 import swaggerUi from 'swagger-ui-express';
 import { NODE_ENV, PORT, LOG_FORMAT, ORIGIN, CREDENTIALS } from '@config';
-import { dbConnection } from '@databases';
 import { Routes } from '@interfaces/routes.interface';
 import errorMiddleware from '@middlewares/error.middleware';
 import { logger, stream } from '@utils/logger';
+import prisma from './databases';
 
 class App {
   public app: express.Application;
@@ -23,7 +22,6 @@ class App {
     this.app = express();
     this.env = NODE_ENV || 'development';
     this.port = PORT || 3000;
-
     this.connectToDatabase();
     this.initializeMiddlewares();
     this.initializeRoutes(routes);
@@ -42,10 +40,10 @@ class App {
 
   public async closeDatabaseConnection(): Promise<void> {
     try {
-      await disconnect();
-      console.log('Disconnected from MongoDB');
+      await prisma.$disconnect();
+      console.log('Disconnected from PostgreSQL');
     } catch (error) {
-      console.error('Error closing database connection:', error);
+      console.error('Error closing Prisma connection:', error);
     }
   }
 
@@ -54,12 +52,8 @@ class App {
   }
 
   private async connectToDatabase() {
-    if (this.env !== 'production') {
-      set('debug', true);
-    }
-
     try {
-      await dbConnection.initialize();
+      await prisma.$connect();
       console.log('Connected to PostgreSQL');
     } catch (error) {
       console.error('Database connection error:', error);

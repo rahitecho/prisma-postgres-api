@@ -1,114 +1,38 @@
-import { IsString, IsEmail, IsOptional, IsInt, IsDate, IsBoolean, IsNumber, Length, MaxLength } from 'class-validator';
-import { Type } from 'class-transformer';
+// src/schemas/customer.schema.ts
+import { z } from 'zod';
 
-export class CreateCustomerDto {
-  @IsString()
-  @MaxLength(55)
-  name: string;
+export const CreateCustomerSchema = z.object({
+  name: z.string().max(55),
+  dob: z
+    .preprocess(arg => {
+      if (typeof arg === 'string' || arg instanceof Date) return new Date(arg);
+      return undefined;
+    }, z.date())
+    .optional(),
+  gender: z.string().max(11).optional(),
+  phone: z.string().max(55),
+  email: z.string().email().max(55),
+  sport_id: z.number().int(),
+  city_id: z.number().int(),
+  customer_code: z.string().max(55),
+  location: z.string(),
+  address: z.string(),
+  employment_status: z.string().max(11),
+  resident_status: z.string().max(11),
+  status: z.number().int(),
+  created_by: z.number().int().optional(),
+  otp: z.string().max(45).optional(),
+  isverified: z.boolean().optional(),
+  otp_expiry_time: z.string().max(45).optional(),
+  valid_otp_time: z.number().optional(),
+  google_id: z.string().max(100).optional(),
+  facebook_id: z.string().max(100).optional(),
+  apple_id: z.string().max(100).optional(),
+  order_id: z.string().max(100).optional(),
+  payment_id: z.string().max(100).optional(),
+  order_status: z.string().max(45).optional(),
+  picture: z.string().max(4096).optional(),
+  venue_id: z.number().optional(),
+});
 
-  @IsOptional()
-  @Type(() => Date)
-  @IsDate()
-  dob?: Date;
-
-  @IsOptional()
-  @IsString()
-  @MaxLength(11)
-  gender?: string;
-
-  @IsString()
-  @MaxLength(55)
-  phone: string;
-
-  @IsEmail()
-  @MaxLength(55)
-  email: string;
-
-  @IsInt()
-  sport_id: number;
-
-  @IsInt()
-  city_id: number;
-
-  @IsString()
-  @MaxLength(55)
-  customer_code: string;
-
-  @IsString()
-  location: string;
-
-  @IsString()
-  address: string;
-
-  @IsString()
-  @MaxLength(11)
-  employment_status: string;
-
-  @IsString()
-  @MaxLength(11)
-  resident_status: string;
-
-  @IsInt()
-  status: number;
-
-  @IsOptional()
-  @IsInt()
-  created_by?: number;
-
-  @IsOptional()
-  @IsString()
-  @MaxLength(45)
-  otp?: string;
-
-  @IsOptional()
-  @IsBoolean()
-  isverified?: boolean;
-
-  @IsOptional()
-  @IsString()
-  @MaxLength(45)
-  otp_expiry_time?: string;
-
-  @IsOptional()
-  @IsInt()
-  valid_otp_time?: number;
-
-  @IsOptional()
-  @IsString()
-  @MaxLength(100)
-  google_id?: string;
-
-  @IsOptional()
-  @IsString()
-  @MaxLength(100)
-  facebook_id?: string;
-
-  @IsOptional()
-  @IsString()
-  @MaxLength(100)
-  apple_id?: string;
-
-  @IsOptional()
-  @IsString()
-  @MaxLength(100)
-  order_id?: string;
-
-  @IsOptional()
-  @IsString()
-  @MaxLength(100)
-  payment_id?: string;
-
-  @IsOptional()
-  @IsString()
-  @MaxLength(45)
-  order_status?: string;
-
-  @IsOptional()
-  @IsString()
-  @MaxLength(4096)
-  picture?: string;
-
-  @IsOptional()
-  @IsInt()
-  venue_id?: number;
-}
+export type CreateCustomerDto = z.infer<typeof CreateCustomerSchema>;

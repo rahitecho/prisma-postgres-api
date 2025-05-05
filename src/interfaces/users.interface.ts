@@ -1,5 +1,9 @@
 export interface User {
-  _id: string;
+  id: number;
+  name: string;
   email: string;
-  password: string;
+  password: string; // hashed password
+  isVerified: boolean;
+  createdAt: Date;
+  updatedAt: Date;
 }
