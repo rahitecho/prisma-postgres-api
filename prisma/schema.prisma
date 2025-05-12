@@ -40,6 +40,11 @@ model customer {
   venue_id          Int?
 }
 
+enum Role {
+  SUPERADMIN
+  ADMIN
+}
+
 model user {
   id         Int      @id @default(autoincrement())
   name       String
@@ -48,5 +53,70 @@ model user {
   isVerified Boolean  @default(false)
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
+  role  Role   @default(ADMIN)
 }
+
+model Employee {
+  id        String   @id @default(uuid())
+  name       String
+  email      String   @unique
+  password   String
+  company   Company  @relation(fields: [companyId], references: [id])
+  companyId String
+  position  String?
+  posts     post[]
+}
+
+model post {
+  id        Int      @id @default(autoincrement()) // Primary key
+  title     String                                 // Title of the post
+  content   String?                                // Optional content
+  published Boolean   @default(false)              // Publication status
+  createdAt DateTime  @default(now())              // Timestamp
+  updatedAt DateTime  @updatedAt                   // Auto-updated on change
+
+  // Foreign key
+  authorId  String                                    // Connects to Employee table
+  author    Employee     @relation(fields: [authorId], references: [id])
+}
+
+model Company {
+  id           String    @id @default(uuid())
+  name         String
+  domain       String    @unique
+  isActive     Boolean   @default(true)
+  employees        Employee[]
+  subscriptions Subscription[]
+}
+
+model Plan {
+  id        String   @id @default(uuid())
+  name      String
+  price     Float
+  maxUsers  Int
+  features  String[] // or make a Feature table
+  subscriptions Subscription[]
+}
+
+model Subscription {
+  id         String   @id @default(uuid())
+  status     String   // "trial", "active", "cancelled"
+  startDate  DateTime
+  endDate    DateTime
+  company    Company  @relation(fields: [companyId], references: [id])
+  companyId  String
+  plan       Plan     @relation(fields: [planId], references: [id])
+  planId     String
+  invoices   Invoice[]
+}
+
+model Invoice {
+  id             String   @id @default(uuid())
+  subscription   Subscription @relation(fields: [subscriptionId], references: [id])
+  subscriptionId String
+  amount         Float
+  dueDate        DateTime
+  paidAt         DateTime?
+}
+
 

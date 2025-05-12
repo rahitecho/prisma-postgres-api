@@ -17,6 +17,9 @@ const authMiddleware = async (req: RequestWithUser, res: Response, next: NextFun
       const findUser = await prisma.user.findUnique({ where: { id: userId } });
 
       if (findUser) {
+        if (req.path.includes('company') && findUser.role !== 'ADMIN') {
+          next(new HttpException(403, 'You are not allowed edit company'));
+        }
         req.user = findUser;
         next();
       } else {

@@ -7,7 +7,7 @@ import { hash } from 'bcrypt';
 
 class UserService {
   public async findAllUser(): Promise<User[]> {
-    return prisma.user.findMany();
+    return prisma.user.findMany({ include: { posts: true } });
   }
 
   public async findUserById(userId: number): Promise<User> {
@@ -26,8 +26,7 @@ class UserService {
     const hashPassword = await hash(userData.password, 10);
     const user = await prisma.user.create({
       data: {
-        name: userData.name,
-        email: userData.email,
+        ...userData,
         password: hashPassword,
       },
     });

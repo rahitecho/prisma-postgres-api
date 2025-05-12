@@ -6,4 +6,5 @@ export interface User {
   isVerified: boolean;
   createdAt: Date;
   updatedAt: Date;
+  role: 'ADMIN' | 'SUPERADMIN';
 }
